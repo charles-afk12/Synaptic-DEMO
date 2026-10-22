@@ -116,10 +116,11 @@ m.exp=h.exp;m.pkg=h.pkg;log('Undid renewal & voided payment',m.name+' restored t
 function saveE(e,id){const f=Object.fromEntries(new FormData(e.target)),m=M.find(x=>x.id===id);
 const o=m.pkg+', '+fd(m.exp);m.pkg=PK.find(p=>p.id==f.pk).n;m.exp=new Date(f.exp+'T00:00:00');log('Edited membership',m.name+': '+o+' → '+m.pkg+', '+fd(m.exp));ed=null;render()}
 function addM(e){const f=Object.fromEntries(new FormData(e.target)),pk=PK.find(x=>x.id==f.pk),fr=new FileReader();
-fr.onload=()=>{const id='M'+(1001+M.length),d=f.bd?new Date(f.bd+'T00:00:00'):null;
-M.push({id,name:f.name,phone:f.phone,exp:new Date(T0.getTime()+pk.d*D),pkg:pk.n,bd:d?[d.getMonth(),d.getDate()]:null,email:'',ht:'—',em:'',tok:newTok(),old:[],photo:fr.result});
+const fin=photo=>{const nn=Math.max(1000,...M.concat(MA).map(m=>+m.id.slice(1))),id='M'+(nn+1),d=f.bd?new Date(f.bd+'T00:00:00'):null;
+M.push({id,name:f.name,phone:f.phone,exp:new Date(T0.getTime()+pk.d*D),pkg:pk.n,bd:d?[d.getMonth(),d.getDate()]:null,email:'',ht:'—',em:'',tok:newTok(),old:[],photo});
 W[id]=[{at:new Date(),kg:+f.kg,by:staff.name}];
-pay(f.name,pk.p,f.meth,'New membership: '+pk.n);log('Registered member',f.name+' ('+id+'), '+pk.n);toSheet('Members',[id,f.name,pk.n]);render()};fr.readAsDataURL(f.photo)}
+pay(f.name,pk.p,f.meth,'New membership: '+pk.n);log('Registered member',f.name+' ('+id+'), '+pk.n);toSheet('Members',[id,f.name,pk.n]);render()};
+fr.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=160;const k=Math.max(160/im.width,160/im.height),w=im.width*k,h=im.height*k;c.getContext('2d').drawImage(im,(160-w)/2,(160-h)/2,w,h);fin(c.toDataURL('image/jpeg',.7))};im.onerror=()=>fin(fr.result);im.src=fr.result};fr.readAsDataURL(f.photo)}
 const opt=()=>PK.filter(p=>p.a).map(p=>`<option value="${p.id}">${p.n} – ${peso(p.p)}</option>`).join('');
 const badge=m=>`<span class="b ${st(m)}">${st(m)==='Expiring'?'Expiring Soon':st(m)}</span>`;
 const V={
@@ -224,7 +225,7 @@ function testSheet(){const w=syncIG();if(!IG.sheets){igMsg=w||'Paste your Sheets
 async function testDisc(){const w=syncIG();if(!IG.disc){igMsg=w||'Paste your Discord webhook URL first.';render();return}
 try{const r=await fetch(IG.disc,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:'✅ Test message from Synaptic Fitness',allowed_mentions:{parse:[]}})});igMsg=r.ok?'Discord test sent ✓':'Discord answered '+r.status+'. Check the webhook URL.'}catch(e){igMsg='Could not reach Discord from this page ('+e.message+'). Check the URL; some views block outside requests.'}render()}
 const GS=["const KEY = 'change-this-secret';","function doPost(e) {","  const d = JSON.parse(e.postData.contents);","  if (d.key !== KEY) return ContentService.createTextOutput('denied');","  const ss = SpreadsheetApp.getActiveSpreadsheet();","  let sh = ss.getSheetByName(d.sheet);","  if (!sh) { sh = ss.insertSheet(d.sheet); sh.appendRow(['Time', ...d.headers]); sh.setFrozenRows(1); }","  sh.appendRow([new Date(), ...d.row]);","  return ContentService.createTextOutput('ok');","}"].join('\n');
-V['Integrations']=()=>`<div class="card"><h3>Google Sheets</h3><label class="mu">Web app URL (from Apps Script)</label><input id="igs" value="${esc(IG.sheets)}" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:8px">
+V['Integrations']=()=>`${cloudCard()}<div class="card"><h3>Google Sheets</h3><label class="mu">Web app URL (from Apps Script)</label><input id="igs" value="${esc(IG.sheets)}" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:8px">
 <label class="mu">Secret key (must match KEY in the script)</label><input id="igk" value="${esc(IG.key)}" style="margin-bottom:8px">
 <label class="mu">Apps Script to paste into your sheet (Extensions → Apps Script)</label><textarea readonly onclick="this.select()" rows="10" style="width:100%;font:12px monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px">${esc(GS)}</textarea>
 <div class="mu" style="margin-top:6px">Sheets receives every audit event, payment, check-in and new member as a new row.</div></div>
@@ -258,8 +259,8 @@ const loginV=()=>`<div style="max-width:400px;margin:24px auto"><div class="card
 <form onsubmit="event.preventDefault();login(this.elements.id.value,this.elements.pin.value)"><input name="id" placeholder="Member ID (e.g. M1001)" style="margin-bottom:8px" required>
 <input name="pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN – last 4 digits of your phone" style="margin-bottom:10px" required>
 ${err?`<div style="color:var(--r);margin-bottom:8px">${err}</div>`:''}<button class="btn p" style="width:100%">View my account</button></form>
-<div class="row" style="flex-wrap:nowrap;margin-top:10px"><button type="button" class="btn" onclick="login('M1001','0000')">Try demo member</button><button type="button" class="btn" onclick="login('M1006','5555')">Try expired member</button></div><div class="mu" style="margin-top:6px">Or type M1001 / 0000. A member you register logs in with their ID and the last 4 digits of the phone you entered.</div></div>
-<div class="card"><h3>Staff &amp; coaches</h3><div class="row" style="flex-wrap:nowrap"><button class="btn" onclick="staffIn('Admin')">Admin</button><button class="btn" onclick="staffIn('Coach')">Coach</button><button class="btn" onclick="staffIn('Front Desk')">Front Desk</button></div><div class="mu" style="margin-top:8px">Demo logins — each role sees different tabs and actions.</div></div></div>`;
+<div class="row" style="flex-wrap:nowrap;margin-top:10px"><button type="button" class="btn" onclick="login('M1001','0000')">Try demo member</button><button type="button" class="btn" onclick="login('M1006','5555')">Try expired member</button></div><div class="mu" style="margin-top:6px">Or type M1001 / 0000. A member you register logs in with their ID and the last 4 digits of the phone you entered.</div><div style="margin-top:10px"><button type="button" class="btn" onclick="resetDemo()">Reset demo data</button> <span class="mu">clears changes saved in this browser</span></div></div>
+<details class="card"><summary style="cursor:pointer">Connect to shared data (all devices)</summary>${cloudCard()}</details><div class="card"><h3>Staff &amp; coaches</h3><div class="row" style="flex-wrap:nowrap"><button class="btn" onclick="staffIn('Admin')">Admin</button><button class="btn" onclick="staffIn('Coach')">Coach</button><button class="btn" onclick="staffIn('Front Desk')">Front Desk</button></div><div class="mu" style="margin-top:8px">Demo logins — each role sees different tabs and actions.</div></div></div>`;
 const MV={
 Home:()=>{const m=mm(),ok=st(m)!=='Expired',cs=mcs(m),w=W[m.id],mo=cs.filter(c=>c.at.getMonth()===T0.getMonth()&&c.at.getFullYear()===T0.getFullYear()).length;
 return `<div style="max-width:420px;margin:auto"><h2 style="margin:0 0 10px">Hi, ${m.name.split(' ')[0]} 👋</h2>${nextBd(m)===0?'<div class="card">🎂 Happy birthday from Synaptic Fitness!</div>':''}
@@ -282,11 +283,43 @@ return `<div style="max-width:420px;margin:auto"><div class="card"><h3>My detail
 <div class="card"><h3>Contact info</h3><form onsubmit="event.preventDefault();updP(event)">
 <label class="mu">Phone</label><input name="phone" value="${m.phone}" style="margin-bottom:8px"><label class="mu">Email</label><input name="email" value="${m.email}" style="margin-bottom:8px">
 <label class="mu">Emergency contact (optional)</label><input name="em" value="${m.em}" placeholder="Name – phone" style="margin-bottom:10px"><button class="btn p" style="width:100%">Save changes</button>${pmsg?`<div style="color:var(--g);margin-top:8px">${pmsg}</div>`:''}</form></div></div>`}};
-function render(keep){const nav=document.getElementById('nav'),v=document.getElementById('v'),out='<button style="margin-left:auto" onclick="sess=null;err=\'\';render()">Log out</button>';
+function render(keep){save();const nav=document.getElementById('nav'),v=document.getElementById('v'),out='<button style="margin-left:auto" onclick="sess=null;err=\'\';render()">Log out</button>';
 if(!sess){nav.innerHTML='';v.innerHTML=loginV();return}
 if(sess!=='staff'){nav.innerHTML=Object.keys(MV).map(k=>`<button class="${k===mt?'on':''}" onclick="mt='${k}';pmsg='';render()">${k}</button>`).join('')+out;try{v.innerHTML=MV[mt]();if(mt==='Home')post()}catch(x){v.innerHTML='<div class="card">Something went wrong: '+esc(x.message)+'</div>'}return}
 renderStaff(keep);nav.insertAdjacentHTML('beforeend','<span class="mu" style="margin-left:auto">'+staff.name+' · '+staff.role+'</span>'+out.replace('margin-left:auto',''))}
 function renderStaff(keep){document.getElementById('nav').innerHTML=Object.keys(V).filter(k=>k[0]!='_'&&k!=='Member Portal'&&TABS[staff.role].includes(k)).map(k=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';res=null;render()">${k}</button>`).join('');
  document.getElementById('v').innerHTML=V[tab]();if(tab==='Member Portal')post();if(keep){const s=document.getElementById('s');s.focus();s.setSelectionRange(q.length,q.length)}}
-render();
+const SK='sf_demo_v1',SC='sf_cloud';
+let CL={on:false,url:'',key:'',at:'',last:'',busy:false,timer:null,err:''},cloudMsg='';
+const rv=function(k,v){return this[k] instanceof Date?{$d:this[k].toISOString()}:v};
+const rev=(k,v)=>v&&v.$d?new Date(v.$d):v;
+const ser=()=>JSON.stringify({M,MA,P,C,W,AL,PK,VOID,NL,tx,R:[...R]},rv);
+function apply(d){M.splice(0,M.length,...d.M);PK.splice(0,PK.length,...d.PK);MA=d.MA;P=d.P;C=d.C;W=d.W;AL=d.AL;VOID=d.VOID;NL=d.NL;tx=d.tx;R=new Set(d.R);CL.last=ser()}
+function save(){try{const s=ser();localStorage.setItem(SK,s);if(CL.on&&s!==CL.last){clearTimeout(CL.timer);CL.timer=setTimeout(push,600)}}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(SK)||'null',rev);if(d)apply(d);const c=JSON.parse(localStorage.getItem(SC)||'null');if(c&&c.url){CL.url=c.url;CL.key=c.key;CL.on=true}}catch(e){}}
+function resetDemo(){try{localStorage.removeItem(SK)}catch(e){}location.reload()}
+const hdr=()=>({apikey:CL.key,Authorization:'Bearer '+CL.key,'Content-Type':'application/json'});
+const same=(a,b)=>!!a&&!!b&&new Date(a).getTime()===new Date(b).getTime();
+function toast(t){let e=document.getElementById('toast');if(!e){e=document.createElement('div');e.id='toast';e.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;border:1px solid #e11d1d;padding:10px 16px;border-radius:10px;z-index:90;max-width:90%';document.body.appendChild(e)}e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',6000)}
+async function pull(force){if(!CL.on||CL.busy)return;if(CL.timer&&!force)return;CL.busy=true;
+try{const r=await fetch(CL.url+'/rest/v1/app_state?id=eq.1&select=data,updated_at',{headers:hdr()});if(!r.ok)throw new Error('HTTP '+r.status);const rows=await r.json(),row=rows[0];if(!row)throw new Error('Row missing — run the SQL first');
+const fresh=!same(row.updated_at,CL.at);
+if(fresh&&row.data&&row.data.M){const ae=document.activeElement;if(force||!(ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName))){apply(JSON.parse(JSON.stringify(row.data),rev));CL.at=row.updated_at;render()}}
+else if(fresh){CL.at=row.updated_at;await push()}
+CL.err=''}catch(e){CL.err=e.message}finally{CL.busy=false}}
+async function push(){CL.timer=null;if(!CL.on)return;const s=ser(),at=new Date().toISOString();
+try{const r=await fetch(CL.url+'/rest/v1/app_state?id=eq.1&updated_at=eq.'+encodeURIComponent(CL.at)+'&select=updated_at',{method:'PATCH',headers:{...hdr(),Prefer:'return=representation'},body:JSON.stringify({data:JSON.parse(s),updated_at:at})});
+if(!r.ok)throw new Error('HTTP '+r.status);const rows=await r.json();
+if(rows.length){CL.at=rows[0].updated_at;CL.last=s;CL.err=''}
+else{toast('Another device saved first. Refreshed with their data — please redo your last change.');await pull(true)}}catch(e){CL.err=e.message}}
+async function connectCloud(){const u=document.getElementById('sbu').value.trim().replace(/\/$/,''),k=document.getElementById('sbk').value.trim();
+if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(u)||k.length<20){cloudMsg='Enter the Project URL (https://xxxx.supabase.co) and the anon key.';render();return}
+CL.url=u;CL.key=k;CL.on=true;CL.at='';CL.err='';await pull(true);
+if(CL.err){CL.on=false;cloudMsg='Could not connect: '+CL.err;render();return}
+try{localStorage.setItem(SC,JSON.stringify({url:u,key:k}))}catch(e){}cloudMsg='Connected ✓ All devices with this key now share one set of data.';render()}
+function disconnectCloud(){CL.on=false;try{localStorage.removeItem(SC)}catch(e){}cloudMsg='Disconnected. This device keeps its own saved copy.';render()}
+const SQL=["create table app_state (","  id int primary key,","  data jsonb not null default '{}',","  updated_at timestamptz not null default now()",");","insert into app_state (id) values (1);","alter table app_state enable row level security;","create policy \"demo open\" on app_state for all using (true) with check (true);"].join('\n');
+const cloudCard=()=>`<div style="margin-top:8px"><h3>Shared database (Supabase)</h3><div class="mu" style="margin-bottom:6px">${CL.on?(CL.err?'⚠️ Connected, but: '+esc(CL.err):'☁️ Connected — changes sync across devices every few seconds'):'Not connected — data stays on this device'}</div><input id="sbu" value="${esc(CL.url)}" placeholder="Project URL: https://xxxx.supabase.co" style="margin-bottom:8px"><input id="sbk" value="${esc(CL.key)}" placeholder="anon public key" style="margin-bottom:8px"><div class="row"><button class="btn p" onclick="connectCloud()">Connect</button><button class="btn" onclick="disconnectCloud()">Disconnect</button></div>${cloudMsg?`<div style="margin-top:8px">${esc(cloudMsg)}</div>`:''}<label class="mu" style="display:block;margin-top:8px">SQL to run once in Supabase (SQL Editor)</label><textarea readonly onclick="this.select()" rows="8" style="width:100%;font:12px monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px">${esc(SQL)}</textarea><div class="mu" style="margin-top:6px">Demo only: anyone with the key can read and change this data. Use made-up members.</div></div>`;
+setInterval(()=>pull(),4000);
+load();render();
 </script></body></html>
